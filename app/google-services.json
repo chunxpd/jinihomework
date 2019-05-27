@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "739082126914",
+    "firebase_url": "https://jinihomework-d02cf.firebaseio.com",
+    "project_id": "jinihomework-d02cf",
+    "storage_bucket": "jinihomework-d02cf.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:739082126914:android:490a3c5b8b1fc2a4",
+        "android_client_info": {
+          "package_name": "jini.coding.homework"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "739082126914-4j44tbp4d64nqhlql6sv0n3iuqe9p8pe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5ASdQB0KUWluKAZ2f2z9DJ91nkTMGCVE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "739082126914-4j44tbp4d64nqhlql6sv0n3iuqe9p8pe.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
