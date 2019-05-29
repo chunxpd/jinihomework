@@ -7,9 +7,10 @@ public class Common {
     private static final int SPLASH_TIME_OUT = 2000;
     private static final String PROTOCOL = "http://";
     private static final String HOMEPAGE = PROTOCOL + HTTP_HOST + "/";
+    private static final String MARKET_VERSION = PROTOCOL + HTTP_HOST + "/version.php";
     private static final String ERROR_PAGE = "file:///android_asset/404_Error.html";
     private static final String TOKEN_REGIST_PAGE = HOMEPAGE + "app/mobile_token.php";
-
+    private static final String MARKET_APP_LINK = "https://play.google.com/store/apps/details?id=jini.coding.homework";
     public static String getHttpHost() {
         return HTTP_HOST;
     }
@@ -28,6 +29,12 @@ public class Common {
 
     public static String getHomepage() {
         return HOMEPAGE;
+    }
+    public static String getMARKET_VERSION() {
+        return MARKET_VERSION;
+    }
+    public static String getMARKET_APP_LINK() {
+        return MARKET_APP_LINK;
     }
 
     public static String getError_page() {

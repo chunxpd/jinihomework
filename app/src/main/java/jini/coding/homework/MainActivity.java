@@ -1,15 +1,19 @@
 package jini.coding.homework;
 
 import android.annotation.SuppressLint;
-import android.app.ProgressDialog;
+import android.app.AlertDialog;
+import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Message;
 import android.provider.MediaStore;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.ValueCallback;
@@ -32,6 +36,8 @@ import java.util.HashMap;
 
 import jini.coding.homework.Remote.HttpRequest;
 import jini.coding.homework.Remote.RealPathUtil;
+import jini.coding.homework.Remote.RequestHttpURLConnection;
+
 
 public class MainActivity extends BaseActivity {
     WebView webView;
@@ -47,12 +53,21 @@ public class MainActivity extends BaseActivity {
     private long   backPressedTime = 0;
     String regId;
 
+    private String PackageVersion="";
+    private String MarketVersions="";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+        // URL 설정.
+       // String url = "http://jinihomework.co.kr/version.php";
+
+        // AsyncTask를 통해 HttpURLConnection 수행.  (Market 버전 가져오기 위해 임의로 서버에 버전을 넣어둔거 가져오기
+        NetworkTask networkTask = new NetworkTask(Common.getMARKET_VERSION(), null);
+        networkTask.execute();
 
         mContext = this;
 
@@ -170,6 +185,7 @@ public class MainActivity extends BaseActivity {
         webView.setWebViewClient(new WebViewClient());
         webView.loadUrl(Common.getHomepage());
 
+
     }
 
     /**
@@ -245,7 +261,6 @@ public class MainActivity extends BaseActivity {
         return result;
     }
 
-
     @SuppressLint("StaticFieldLeak")
     public void getRegistrationId() {
         String response = "";
@@ -287,8 +302,109 @@ public class MainActivity extends BaseActivity {
             }.execute();
         }
     }
+    // HttpRequest 사용하여 웹서버에 있는 Version.php를 파싱하여 버전 가져옴
+    public class NetworkTask extends AsyncTask<Void, Void, String> {
+        private String url;
+        private ContentValues values;
 
+        public NetworkTask(String url, ContentValues values) {
 
+            this.url = url;
+            this.values = values;
+        }
+
+        @Override
+        protected String doInBackground(Void... params) {
+            String result; // 요청 결과를 저장할 변수.
+            RequestHttpURLConnection requestHttpURLConnection = new RequestHttpURLConnection();
+            result = requestHttpURLConnection.request(url, values); // 해당 URL로 부터 결과물을 얻어온다.
+
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            MarketVersions=s;
+            getPackageVersion();
+            //doInBackground()로 부터 리턴된 값이 onPostExecute()의 매개변수로 넘어오므로 s를 출력한다.
+            //    Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
+            int compare=compareVersionNames(PackageVersion,MarketVersions);
+            if(compare==0){  // 버전이 같을때
+            }else{  // 업데이트 됐을때
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);       //Builder을 먼저 생성하여 옵션을 설정합니다.
+                builder.setTitle("업데이트 안내");                                                                //타이틀을 지정합니다.
+                builder.setMessage("업데이트 후 사용해주세요.");                                         //메시지를 지정합니다.
+
+                builder.setPositiveButton("Update", new DialogInterface.OnClickListener() {        //확인 버튼을 생성하고 클릭시 동작을 구현합니다.
+                    @Override
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        //"YES" Button Click
+                        Intent marketLaunch = new Intent(
+                                Intent.ACTION_VIEW);
+                        marketLaunch.setData(Uri
+                                .parse(Common.getMARKET_APP_LINK()));
+                        startActivity(marketLaunch);
+                        finish();
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {       //취소 버튼을 생성하고 클릭시 동작을 구현합니다.
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //"NO" Button Click
+                        //Toast.makeText(getApplicationContext(), "NO Button Click", Toast.LENGTH_LONG).show();
+                    }
+                });
+                AlertDialog alert = builder.create();                                                       //빌더를 이용하여 AlertDialog객체를 생성합니다.
+                alert.show();
+
+            }
+
+        }
+    }
+
+    public void getPackageVersion(){
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA);
+
+            PackageVersion = pInfo.versionName;
+            int versionCode = pInfo.versionCode;
+            Log.e("", "device_version : " + pInfo.versionName + "   " + pInfo.versionCode);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+    public int compareVersionNames(String oldVersionName, String newVersionName) {
+
+        int res = 0;
+
+        String[] oldNumbers = oldVersionName.split("\\.");
+        String[] newNumbers = newVersionName.split("\\.");
+
+        // To avoid IndexOutOfBounds
+        int maxIndex = Math.min(oldNumbers.length, newNumbers.length);
+
+        for (int i = 0; i < maxIndex; i ++) {
+            int oldVersionPart = Integer.valueOf(oldNumbers[i]);
+            int newVersionPart = Integer.valueOf(newNumbers[i]);
+
+            if (oldVersionPart < newVersionPart) {
+                res = -1;
+                break;
+            } else if (oldVersionPart > newVersionPart) {
+                res = 1;
+                break;
+            }
+        }
+
+        // If versions are the same so far, but they have different length...
+        if (res == 0 && oldNumbers.length != newNumbers.length) {
+            res = (oldNumbers.length > newNumbers.length)?1:-1;
+        }
+
+        return res;
+    }
 
     @Override
     public void onBackPressed()
@@ -309,4 +425,3 @@ public class MainActivity extends BaseActivity {
     }
 
 }
-
